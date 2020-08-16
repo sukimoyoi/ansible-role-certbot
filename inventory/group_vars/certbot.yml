@@ -1,0 +1,13 @@
+# We install certs at this directory
+certdir: /srv/ssl
+
+# docker image of certbot
+docker_image: certbot/certbot:v0.19.0
+container_name: certbot
+
+# certbot's parameter
+mail_address: 
+domain_name: 
+
+
+

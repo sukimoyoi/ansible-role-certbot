@@ -1,0 +1,13 @@
+- name: send a script for updating
+  template: 
+    src: roles/certbot/templates/renew.sh.j2 
+    dest: /usr/local/bin/renew.sh 
+    owner: root 
+    group: root 
+    mode: 0744
+
+- name: automatic update certificates
+  cron:
+    name: certbot
+    special_time: daily
+    job: /usr/local/bin/renew.sh

@@ -1,0 +1,54 @@
+# pip tasks
+- name: uninstall pip (Debian)
+  apt: name=python-pip state=absent
+  when: ansible_os_family == "Debian"
+
+- name: install pip (Debian)
+  apt: pkg=python-pip state=present
+  when: ansible_os_family == "Debian"
+
+- name: upgrade pip (Debian)
+  pip: name=pip state=latest
+  when: ansible_os_family == "Debian"
+
+- name: install python module "docker-py"
+  pip: name=docker-py state=present
+  tags: pip
+
+- name: install python module "docker" ([auto_remove] needs this)
+  pip: name=docker state=present
+  tags: pip
+
+
+# certbot use 80 port, so other process must be stopped using it
+- name: find a process using port 80
+  shell: lsof -i:80
+  ignore_errors: true   
+  register: process
+
+# if using, stop running ansible-playbook
+- name: does shutdown ansible-playbook?
+  fail: msg='Port 80 is used. Stop the process.'
+  when: process.rc == 0
+
+- name: does ssl directory exist?
+  stat: path={{ certdir }}
+  register: p
+
+# Get certficates with certbot
+# You have to install Docker and "docker-py" that's Anislble's docker module on the targets
+- name: start certbot docker container
+  docker_container: 
+    name: "{{ container_name }}"
+    auto_remove: True  #error: 
+    detach: False
+    image: "{{ docker_image }}"
+    published_ports: 
+      - 80:80
+    volumes:
+      - "{{ certdir }}/letsencrypt:/etc/letsencrypt"
+      - "{{ certdir }}/log:/var/log/letsencrypt"
+ #     - "{{ certdir }}/well-known:/var/www/.well-known"
+    command:
+      - certonly --standalone --email {{ mail_address }} --agree-tos -n -d {{ domain_name }} --preferred-challenges http-01
+  when: not p.stat.exists

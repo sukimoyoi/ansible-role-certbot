@@ -1,0 +1,8 @@
+#!/bin/bash
+docker run \
+  --rm \
+  -p "80:80" \
+  -v "{{ certdir }}/letsencrypt:/etc/letsencrypt" \
+  -v "{{ certdir }}/log:/var/log/letsencrypt" \
+  {{ docker_image }} renew
+
